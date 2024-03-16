@@ -39,6 +39,21 @@ uint8_t* header_to_bytes(struct dns_header header, size_t* buflen) {
     return buf;
 }
 
+struct dns_header bytes_to_header(uint16_t* b) {
+    return (struct dns_header){
+        .id = ntohs(*b++),
+        .flags = ntohs(*b++),
+        .num_questions = ntohs(*b++),
+        .num_answers = ntohs(*b++),
+        .num_authorities = ntohs(*b++),
+        .num_additionals = ntohs(*b++),
+    };
+}
+
+void print_header(struct dns_header header) {
+    printf("Header:\n\tid=%hu\n\tflags=%hu\n\tnum_questions=%hu\n\tnum_answers=%hu\n\tnum_authorities=%hu\n\tnum_additionals=%hu\n", header.id, header.flags, header.num_questions, header.num_answers, header.num_authorities, header.num_additionals);
+}
+
 uint8_t* question_to_bytes(struct dns_question question, size_t* buflen) {
     *buflen = question.bytes_len + 2 * sizeof(uint32_t);
     uint8_t* buf = malloc(*buflen);
@@ -194,8 +209,9 @@ int main() {
         printf("\\x%02x", recvbuf[i]);
     }
     printf("\n");
-    
 
+    struct dns_header res_header = bytes_to_header((uint16_t*)recvbuf);
+    print_header(res_header);
 
     freeaddrinfo(servinfo);
 
