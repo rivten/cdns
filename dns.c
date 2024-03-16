@@ -79,6 +79,9 @@ uint8_t* encode_dns_name(const char* domain_name, size_t* buflen) {
 
         start = end + 1;
     }
+    assert(*buflen < MAX_BUF_SIZE);
+    buf[*buflen] = 0;
+    ++*buflen;
     return buf;
 }
 
