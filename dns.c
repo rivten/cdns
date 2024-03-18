@@ -26,6 +26,16 @@ struct dns_question {
    uint16_t class;
 };
 
+struct dns_record {
+    size_t bytes_len;
+    uint8_t* bytes;
+    uint16_t type;
+    uint16_t class;
+    uint16_t ttl;
+    size_t data_len;
+    uint8_t* data;
+};
+
 uint8_t* header_to_bytes(struct dns_header header, size_t* buflen) {
     *buflen = sizeof(struct dns_header);
     uint8_t* buf = malloc(*buflen);
@@ -98,6 +108,34 @@ uint8_t* encode_dns_name(const char* domain_name, size_t* buflen) {
     buf[*buflen] = 0;
     ++*buflen;
     return buf;
+}
+
+char* decode_name_simple(const uint8_t* buf) {
+    const uint8_t* tbuf = buf;
+    size_t total_len = 0;
+    size_t part_count = 0;
+    uint8_t len = 0;
+    do {
+        len = *tbuf;
+        printf("%u\n", len);
+        total_len += len;
+        part_count++;
+        tbuf += len + 1;
+    } while (len != 0);
+    total_len += part_count - 2;
+    printf("%zu\n", total_len);
+
+    char* res = malloc(total_len + 1);
+    char* tres = res;
+    do {
+        len = *buf++;
+        memcpy(tres, buf, len);
+        tres += len;
+        *tres++ = '.';
+        buf += len;
+    } while (len != 0);
+    res[total_len] = 0;
+    return res;
 }
 
 enum type {
@@ -217,6 +255,11 @@ int main() {
 
     free(buf);
 
+    //uint8_t b[] = {3, 'h', 'e', 'l', 3, 'c', 'o', 'm', 0};
+    const char* b = "\003hel\003com";
+    char* domain_name = decode_name_simple((uint8_t*)b);
+    printf("%s\n", domain_name);
+    free(domain_name);
 
     return 0;
 }
